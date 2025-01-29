@@ -1,0 +1,27 @@
+name: Deploy Services
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v3
+
+      - name: Crear archivo .env con variables de GitHub
+        run: |
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+          echo "MYSQL_DATABASE=${{ vars.MYSQL_DATABASE }}" >> .env
+          echo "MYSQL_USER=${{ vars.MYSQL_USER }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+          echo "SERVER_IP=${{ vars.SERVER_IP }}" >> .env
+
+      - name: Configurar Docker Compose
+        run: |
+          docker-compose down
+          docker-compose up -d --build

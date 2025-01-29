@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - mariadb
+    networks:
+      - app_network
+    restart: always
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - app_network
+    restart: always
+
+  wazuh:
+    image: wazuh/wazuh-manager:latest
+    container_name: wazuh
+    ports:
+      - "1514:1514/udp"
+      - "55000:55000"
+    environment:
+      - SERVER_IP=${SERVER_IP}
+      - TZ=UTC
+    volumes:
+      - wazuh_data:/var/ossec/data
+    networks:
+      - app_network
+    restart: always
+
+volumes:
+  mariadb_data:
+  wazuh_data:
+
+networks:
+  app_network:
+    driver: bridge
